@@ -6,50 +6,12 @@ services:
       dockerfile: machine_simulator/dockerfile
     environment:
       - MACHINES=2
-      - BROKER=mosquitto
+      - BROKER=broker.hivemq.com
+      - PORT=1883
     ports:
       - 5005:5005
     networks:
       - factory
-    depends_on:
-      - "mosquitto"
-  telegraf:
-    image: telegraf:latest
-    volumes:
-      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
-    environment:
-      - INFLUX_HOST=${INFLUX_HOST}
-      - INFLUX_TOKEN=${INFLUX_TOKEN}
-      - INFLUX_ORG=${INFLUX_ORG}
-      - INFLUX_DATABASE=${INFLUX_DATABASE}
-    networks:
-      - factory
-    depends_on:
-      - "mosquitto"
-  mosquitto:
-    image: eclipse-mosquitto:latest
-    ports:
-      - 1883:1883
-    networks:
-      - factory
-    volumes: 
-      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - 3000:3000
-    environment:
-      - INFLUX_HOST=${INFLUX_HOST}
-      - INFLUX_TOKEN=${INFLUX_TOKEN}
-      - INFLUX_ORG=${INFLUX_ORG}
-      - INFLUX_DATABASE=${INFLUX_DATABASE}
-      - GF_INSTALL_PLUGINS=influxdata-flightsql-datasource
-    volumes: 
-      - ./grafana/datasources:/etc/grafana/provisioning/datasources
-      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
-    networks:
-      - factory
-    
 networks: 
   factory:
 

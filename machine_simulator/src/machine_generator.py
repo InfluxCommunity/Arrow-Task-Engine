@@ -87,12 +87,20 @@ class machine():
 
 def runMachine(m):
     BROKER = os.getenv('BROKER', "localhost")
+    PORT = int(os.getenv('PORT', "1883"))
+    USERNAME = os.getenv('USERNAME', None)
+    PASSWORD = os.getenv('PASSWORD', None)
     counter = 0
     counter2 = 0
 
 
-    mqttProducer = mqtt_publisher(address=BROKER, port=1883, clientID=m.returnMachineID())
-    mqttProducer.connect_client()
+
+    mqttProducer = mqtt_publisher(address=BROKER, port=PORT, clientID=m.returnMachineID())
+    if USERNAME is not None and PASSWORD is not None:
+        mqttProducer.connect_client_secure(username=os.getenv('USERNAME'), password=os.getenv('PASSWORD'))
+    else:
+        mqttProducer.connect_client()
+
     sleeptime = 1
     m.setLoad(randint(10, 50))
     increasing = True
