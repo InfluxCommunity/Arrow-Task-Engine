@@ -41,8 +41,8 @@ class machine():
    
     def returnTemperature(self):
         currentLoad = self.load
-        if currentLoad >= 190: self.temperature = randint(95, 120)
-        elif currentLoad > 110: self.temperature = randint(80, 90)
+        if currentLoad >= 90: self.temperature = randint(95, 120)
+        elif currentLoad > 65: self.temperature = randint(80, 90)
         elif currentLoad >= 40: self.temperature = randint(35, 40)
         elif currentLoad > 0: self.temperature = randint(29, 34)
         else: self.temperature = 20
@@ -55,8 +55,8 @@ class machine():
 
     def returnPower(self):
         currentLoad = self.load
-        if currentLoad >= 190: self.power = randint(400, 500)
-        elif currentLoad > 110: self.power = randint(300, 320)
+        if currentLoad >= 90: self.power = randint(400, 500)
+        elif currentLoad > 65: self.power = randint(300, 320)
         elif currentLoad >= 40: self.power = randint(200, 220)
         elif currentLoad == 0: self.power = 0
         else: self.power = randint(180, 199)
@@ -66,11 +66,12 @@ class machine():
         
     def returnVibration(self):
         currentLoad = self.load
-        if currentLoad >= 190: self.vibration = randint(500, 600)
-        elif currentLoad > 110: self.vibration = randint(300, 500)
+        if currentLoad >= 90: self.vibration = 70
+        elif currentLoad >= 70: self.vibration = 90
+        elif currentLoad >= 41: self.vibration = randint(90, 91)
         elif currentLoad == 0: self.vibration  = 0
-        elif currentLoad >= 40: self.vibration = randint(80, 90)
-        else: self.vibration = randint(50, 79)
+        elif currentLoad == 40: self.vibration = randint(85, 90) # We want this to be normal machine health
+        else: self.vibration = randint(50, 85)
         return self.vibration
 
     def returnMachineHealth(self):
@@ -101,40 +102,38 @@ def runMachine(m):
     else:
         mqttProducer.connect_client()
 
-    sleeptime = 1
-    m.setLoad(randint(10, 50))
-    increasing = True
+    sleeptime = 0.5
+    m.setLoad(40)
+   
     
     
     while True:
         # Check if fault state has changed from True to False
         if m.previous_fault_state and not m.fault:
-            m.setLoad(50)
+            print("Fault state changed from True to False", flush=True)
+            m.setLoad(40)
             m.previous_fault_state = False
 
         # Chance of fault
         if m.fault:
-            if counter2 == 5:
+            print(f"{m.returnMachineID()} fault activate. Current load: {m.load}", flush=True)
+            if counter >= 5:
                 current_load = m.load
-                if current_load < 200:
-                    new_load = min(current_load + 20, 200)
-                    m.setLoad(new_load)
-                counter2 = 0
-        else:
-            if counter2 == 5:
-                # Gradually change load between 50 and 99
-                current_load = m.load
-                if increasing:
-                    new_load = current_load + 5
-                    if new_load >= 99:
-                        increasing = False
+                if current_load < 100:
+                        print("Increasing load", flush=True)
+                        new_load = current_load + 5
+                        print(f"New load: {new_load}", flush=True)
+                        m.setLoad(new_load)
+                        counter = 0
                 else:
-                    new_load = current_load - 5
-                    if new_load <= 50:
-                        increasing = True
-                
-                m.setLoad(new_load)
-                counter2 = 0
+                        print("Load already at 100", flush=True)
+                        new_load = 41
+                        print(f"New load: {new_load}", flush=True)
+                        m.setLoad(new_load)
+                        counter = 0
+            counter += 1
+
+
            
 
         # Publish messages
@@ -143,8 +142,7 @@ def runMachine(m):
         mqttProducer.publish_to_topic(topic="machine", data=check_machine)
         
         sleep(sleeptime)
-        counter = counter + 1
-        counter2 = counter2 + 1
+
 
 
 
