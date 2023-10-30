@@ -66,7 +66,7 @@ class machine():
         
     def returnVibration(self):
         currentLoad = self.load
-        if currentLoad >= 90: self.vibration = 70
+        if currentLoad >= 90: self.vibration = 85
         elif currentLoad >= 70: self.vibration = 90
         elif currentLoad >= 41: self.vibration = randint(90, 91)
         elif currentLoad == 0: self.vibration  = 0
