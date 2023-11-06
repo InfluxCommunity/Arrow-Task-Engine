@@ -6,8 +6,10 @@ services:
       dockerfile: machine_simulator/dockerfile
     environment:
       - MACHINES=2
-      - BROKER=broker.hivemq.com
-      - PORT=1883
+      - BROKER=237d0ace235342fcad6be2a7bbd6a43c.s1.eu.hivemq.cloud
+      - PORT=8883
+      - USERNAME=influxdb
+      - PASSWORD=Influxdb1!
     ports:
       - 5005:5005
     networks:
