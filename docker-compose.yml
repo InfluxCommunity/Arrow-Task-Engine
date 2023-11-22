@@ -15,14 +15,14 @@ services:
       - "mosquitto"
   task-engine:
     build:
-      context: .
-      dockerfile: task-engine/anomaly-detection/dockerfile
+      context: ./task-engine/anomaly-detection
+      dockerfile: dockerfile
     environment:
       - INFLUX_HOST=${INFLUX_HOST}
       - INFLUX_TOKEN=${INFLUX_TOKEN}
       - INFLUX_ORG=${INFLUX_ORG}
       - INFLUX_DATABASE=${INFLUX_DATABASE}
-      - INTERVAL=300
+      - INTERVAL=10
     networks:
       - factory
     depends_on:

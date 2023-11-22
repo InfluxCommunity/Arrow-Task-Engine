@@ -1,4 +1,3 @@
-influxdb-client
-flightsql-dbapi
+influxdb3-python
 pandas
 adtk

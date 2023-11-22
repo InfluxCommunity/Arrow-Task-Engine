@@ -11,7 +11,7 @@ host = getenv("INFLUX_HOST", "eu-central-1-1.aws.cloud2.influxdata.com")
 org = getenv("INFLUX_ORG", "6a841c0c08328fb1")
 database = getenv("INFLUX_DATABASE", "factory")
 token = getenv("INFLUX_TOKEN", "foo")
-interval = getenv("INTERVAL", 300)
+interval = getenv("INTERVAL", 10)
 
 client = InfluxDBClient3(
     token=token,
@@ -20,17 +20,18 @@ client = InfluxDBClient3(
     database=database)
 
    
-Table = client.query(query='''SELECT DISTINCT("machineID") FROM iox.machine_data WHERE time > (NOW() - INTERVAL '5 MINUTE')''',language="sql", mode="all")
+Table = client.query(query='''SELECT DISTINCT("machineID") FROM iox.machine_data WHERE time > (NOW() - INTERVAL '5 minutes')''',language="sql", mode="all")
 
 print(Table)
 d = Table.to_pydict()
 machines = d['machineID']
+level_shift_ad = LevelShiftAD(c=4.0, side='both', window=4)
 
 while True:
    for machine in machines:
 
       try:
-         Table = client.query(query=f"SELECT \"machineID\", vibration, time FROM iox.machine_data WHERE time > (NOW() - INTERVAL '5 MINUTE') AND \"machineID\" = '{machine}'",language="sql", mode="all")
+         Table = client.query(query=f"SELECT \"machineID\", vibration, time FROM iox.machine_data WHERE time > (NOW() - INTERVAL '5 minutes') AND \"machineID\" = '{machine}'",language="sql", mode="all")
 
          print(Table)
                # Convert to Pandas DataFrame
@@ -38,7 +39,6 @@ while True:
          df_temp = df.drop(columns=["machineID"])
 
          s_train = validate_series(df_temp)
-         level_shift_ad = LevelShiftAD(c=6.0, side='both', window=5)
          anomalies = level_shift_ad.fit_detect(s_train, return_list=False).rename(columns={"vibration": "anomalies"})
 
 
