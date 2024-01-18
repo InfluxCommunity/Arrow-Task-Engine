@@ -32,4 +32,4 @@ class mqtt_publisher:
         topic = topic +"/"+ str(data["metadata"]["machineID"])
         message = json.dumps(data)
         self.client.publish(topic=topic, payload=message)
-        print(message, flush=True)
+        #print(message, flush=True)

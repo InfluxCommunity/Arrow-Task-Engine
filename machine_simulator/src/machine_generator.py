@@ -33,7 +33,11 @@ class machine():
 
     def toggle_fault(self):
         self.previous_fault_state = self.fault
-        self.fault = not self.fault
+        self.fault = True
+    
+    def toggle_fault_off(self):
+        self.previous_fault_state = self.fault
+        self.fault = False
 
     def returnMachineID(self):
         return self.machine_id
@@ -48,9 +52,26 @@ class machine():
         else: self.temperature = 20
         return self.temperature
 
-    def setLoad(self, load):
-        # TODO dont randomise    
-        self.load = load
+    def setLoad(self, state, fault):
+        print(self.fault, flush=True)
+        if self.fault == True:
+            state = 'fault'
+            print("Fault state activated", flush=True)
+
+        if state == 'grab_package':
+            self.load = 42
+        elif state == 'wrap_package':
+            self.load = 71
+        elif state == 'place_bow':
+            self.load = 30
+        elif state == 'place_package':
+            self.load = 42
+        elif state == 'fault':
+            if self.load == 100:
+                self.load = 90
+            else:
+                self.load = 100
+  
        
 
     def returnPower(self):
@@ -66,12 +87,12 @@ class machine():
         
     def returnVibration(self):
         currentLoad = self.load
-        if currentLoad >= 90: self.vibration = 83
+        if currentLoad >= 100: self.vibration = randint(69, 70)
+        elif currentLoad == 90: self.vibration = randint(90, 92)
         elif currentLoad >= 70: self.vibration = 90
-        elif currentLoad >= 41: self.vibration = randint(90, 91)
+        elif currentLoad >= 41: self.vibration = randint(80, 85)
         elif currentLoad == 0: self.vibration  = 0
-        elif currentLoad == 40: self.vibration = randint(85, 90) # We want this to be normal machine health
-        else: self.vibration = randint(50, 85)
+        else: self.vibration = randint(70, 75)
         return self.vibration
 
     def returnMachineHealth(self):
@@ -101,47 +122,31 @@ def runMachine(m):
     else:
         mqttProducer.connect_client()
 
-    sleeptime = 0.5
-    m.setLoad(40)
-   
-    
-    
+    sleeptime = 1
+
     while True:
-        # Check if fault state has changed from True to False
-        if m.previous_fault_state and not m.fault:
-            print("Fault state changed from True to False", flush=True)
-            m.setLoad(40)
-            m.previous_fault_state = False
-
-        # Chance of fault
-        if m.fault:
-            print(f"{m.returnMachineID()} fault activate. Current load: {m.load}", flush=True)
-            if counter >= 5:
-                current_load = m.load
-                if current_load < 100:
-                        print("Increasing load", flush=True)
-                        new_load = current_load + 5
-                        print(f"New load: {new_load}", flush=True)
-                        m.setLoad(new_load)
-                        counter = 0
-                else:
-                        print("Load already at 100", flush=True)
-                        new_load = 41
-                        print(f"New load: {new_load}", flush=True)
-                        m.setLoad(new_load)
-                        counter = 0
-            counter += 1
-
-
-           
-
-        # Publish messages
-        check_machine = m.returnMachineHealth()
-        #print(check_machine,flush=True)
-        mqttProducer.publish_to_topic(topic="machine", data=check_machine)
+            for i in range(0, 10):
+                m.setLoad("grab_package", m.fault)
+                mqttProducer.publish_to_topic(topic="machine", data=m.returnMachineHealth())
+                sleep(0.5)
+                i += 1
+            for i in range(0, 15):
+                m.setLoad("wrap_package", m.fault)
+                mqttProducer.publish_to_topic(topic="machine", data=m.returnMachineHealth())
+                sleep(0.5)
+                i += 1
+            for i in range(0, 5):
+                m.setLoad("place_bow", m.fault)
+                mqttProducer.publish_to_topic(topic="machine", data=m.returnMachineHealth())
+                sleep(0.5)
+                i += 1
+            for i in range(0, 10):
+                m.setLoad("place_package", m.fault)
+                mqttProducer.publish_to_topic(topic="machine", data=m.returnMachineHealth())
+                sleep(0.5)
+                i += 1
         
-        sleep(sleeptime)
-
+            sleep(sleeptime)
 
 
 

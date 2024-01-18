@@ -26,7 +26,7 @@ def toggle_machine():
             machine.toggle_fault()
             print(f"{machine_id} fault activated")
         elif machine_state == "off":
-            machine.toggle_fault()
+            machine.toggle_fault_off()
             print(f"{machine_id} fault deactivated")
 
     return jsonify({"status": "success"}), 200
